@@ -136,13 +136,24 @@ if(NOT APPLE)
 endif()
 
 set(PYTHON_EXECUTABLE_LIB_VERSION ${Python_EXECUTABLE})
+
+execute_process(
+	COMMAND "${PYTHON_EXECUTABLE_LIB_VERSION}" -c
+	"from distutils.sysconfig import get_config_var; print(get_config_var('EXT_SUFFIX'))"
+	OUTPUT_VARIABLE PYTHON_EXTENSION_SUFFIX
+)
+string(STRIP ${PYTHON_EXTENSION_SUFFIX} PYTHON_EXTENSION_SUFFIX)
+if(${PYTHON_EXTENSION_SUFFIX} STREQUAL "None")
+	set(PYTHON_EXTENSION_SUFFIX ${CMAKE_SHARED_MODULE_SUFFIX})
+endif()
+set_target_properties(${SWIG_OUTPUT_NAME} PROPERTIES SUFFIX ${PYTHON_EXTENSION_SUFFIX})
+
 if(UNIX)
 	if(NOT APPLE)
 		set_target_properties(${SWIG_OUTPUT_NAME} PROPERTIES
 			INSTALL_RPATH	"$ORIGIN")
 	else()
 		set_target_properties(${SWIG_OUTPUT_NAME} PROPERTIES
-			SUFFIX ".so"
 			INSTALL_RPATH	"@loader_path")
 #		set_property(TARGET ${SWIG_MODULE_pyBar_REAL_NAME} APPEND PROPERTY
 #			LINK_FLAGS "-flat_namespace -undefined suppress")
